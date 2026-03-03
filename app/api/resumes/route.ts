@@ -5,7 +5,7 @@ import { db } from "@/db/drizzle";
 import { resume } from "@/db/schema";
 import { desc, eq } from "drizzle-orm";
 import { CacheKeys } from "@/lib/cache/cacheKeys";
-import { cacheWrapper, invalidateResumeList } from "@/lib/cache/cacheService";
+import { cacheWrapper, invalidateResumeList, invalidateDashboard } from "@/lib/cache/cacheService";
 
 export async function POST(request: NextRequest) {
   try {
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     // Why? User just created a new resume so the cached list is now outdated
     await invalidateResumeList(session.user.id);
 
-    await invalidateDashboard(session.user.id); // ✅ ADD THIS
+    await invalidateDashboard(session.user.id);
 
     return NextResponse.json(newResume, { status: 201 });
   } catch (error) {
@@ -102,6 +102,4 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-function invalidateDashboard(id: string) {
-  throw new Error("Function not implemented.");
-}
+// `invalidateDashboard` is provided by the cache service (clears recent resumes + stats)
