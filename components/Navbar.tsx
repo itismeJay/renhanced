@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { FileText, Menu, X, Moon, Sun } from "lucide-react";
+import { FileText, Menu, X, Moon, Sun, Loader2 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 export function Navbar() {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
+  const [navigating, setNavigating] = useState<string | null>(null);
   const { theme, setTheme } = useTheme();
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
@@ -18,16 +19,18 @@ export function Navbar() {
 
   const handleGetStarted = () => {
     if (isPending) return;
-    if (!session) {
-      router.push("/login");
-    } else {
-      router.push("/dashboard");
-    }
+    const target = session ? "/dashboard" : "/login";
+    router.push(target);
   };
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Clear navigating state when pathname changes
+  useEffect(() => {
+    setNavigating(null);
+  }, [pathname]);
 
   // Only compute theme after mounted
   const isDark = mounted
@@ -109,17 +112,39 @@ export function Navbar() {
                 />
               </Button>
             )}
-            <Link href={!session ? "/login" : "/dashboard"}>
-              <Button variant="ghost" className="cursor-pointer" size="sm">
-                {!session ? "Sign in" : "Dashboard"}
-              </Button>
-            </Link>
+            <Button
+              variant="ghost"
+              className="cursor-pointer"
+              size="sm"
+              onClick={() => {
+                setNavigating("auth");
+                router.push(session ? "/dashboard" : "/login");
+              }}
+            >
+              {navigating === "auth" ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : !session ? (
+                "Sign in"
+              ) : (
+                "Dashboard"
+              )}
+            </Button>
 
-            <Link href={session ? "/dashboard" : "/login"}>
-              <Button variant="gradient" className="cursor-pointer" size="sm">
-                Get Started Free
-              </Button>
-            </Link>
+            <Button
+              variant="gradient"
+              className="cursor-pointer"
+              size="sm"
+              onClick={() => {
+                setNavigating("cta");
+                router.push(session ? "/dashboard" : "/login");
+              }}
+            >
+              {navigating === "cta" ? (
+                <Loader2 className="w-4 h-4 animate-spin text-primary-foreground" />
+              ) : (
+                "Get Started Free"
+              )}
+            </Button>
           </div>
 
           {/* Mobile Menu */}
@@ -184,10 +209,18 @@ export function Navbar() {
 
                 <Button
                   className="w-full"
-                  onClick={handleGetStarted}
+                  onClick={() => {
+                    if (isPending) return;
+                    setNavigating("mobile-cta");
+                    handleGetStarted();
+                  }}
                   disabled={isPending}
                 >
-                  Get Started
+                  {navigating === "mobile-cta" ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    "Get Started"
+                  )}
                 </Button>
               </div>
             </div>

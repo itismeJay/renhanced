@@ -11,6 +11,9 @@ export const CacheKeys = {
   resume: {
     // User's resume list: "resume:list:user:123"
     list: (userId: string) => `resume:list:user:${esc(userId)}`,
+    // Paged resume list: "resume:list:user:123:page:1:limit:12"
+    listPage: (userId: string, page: number, limit: number) =>
+      `resume:list:user:${esc(userId)}:page:${esc(String(page))}:limit:${esc(String(limit))}`,
 
     // Single resume: "resume:single:abc123"
     single: (resumeId: string) => `resume:single:${esc(resumeId)}`,
