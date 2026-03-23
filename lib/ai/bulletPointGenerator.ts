@@ -2,7 +2,7 @@ import OpenAI from "openai";
 
 if (!process.env.OPEN_ROUTER_API_KEY!) {
   throw new Error(
-    "OPENROUTER_API_KEY is not set in .env.local! Please add it.",
+    "OPENROUTER API KEY is not set in .env.local! Please add it.",
   );
 }
 

@@ -1,7 +1,17 @@
 import { NextResponse, NextRequest } from "next/server";
 import { generateSingleBullet } from "@/lib/ai/bulletPointGenerator";
+import { auth } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
+  // Auth check first — before touching the body or calling any paid service
+  const session = await auth.api.getSession({
+    headers: req.headers,
+  });
+
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const body = await req.json();
     const { input, context } = body;
@@ -9,9 +19,7 @@ export async function POST(req: NextRequest) {
     // Validate input exists
     if (!input || typeof input !== "string") {
       return NextResponse.json(
-        {
-          error: "Input text is required!", // ✅ Changed "message" to "error"
-        },
+        { error: "Input text is required!" },
         { status: 400 },
       );
     }
@@ -32,7 +40,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ✅ FIXED: Added await!
     const improved = await generateSingleBullet(input.trim(), context);
 
     return NextResponse.json({
@@ -41,7 +48,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (error: unknown) {
     console.error("API error:", error);
-
     return NextResponse.json(
       {
         error:
