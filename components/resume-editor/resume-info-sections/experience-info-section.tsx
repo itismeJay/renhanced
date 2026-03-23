@@ -246,8 +246,17 @@ export function ExperienceInfoSection({
         throw new Error(data.error || "Failed to improve bullet");
       }
 
+      // Validate the response contains a valid bullet before updating
+      if (
+        !data.bullet ||
+        typeof data.bullet !== "string" ||
+        data.bullet.trim().length === 0
+      ) {
+        throw new Error("Received an invalid response from the AI service");
+      }
+
       // Update the bullet with improved version
-      handleBulletChange(entryId, bulletIndex, data.bullet);
+      handleBulletChange(entryId, bulletIndex, data.bullet.trim());
 
       // Show success
       toast.success("Bullet point improved!", {
